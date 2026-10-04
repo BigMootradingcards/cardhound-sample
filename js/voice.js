@@ -171,7 +171,7 @@ window.CH_VOICE = function (U) {
     U.setLastCard({ listingId: L.id, title: L.title, source: "hunt" });
     var pm = V.profitMath(L), fair = Math.floor(pm.ev / 1.15 - (L.raw ? pm.gradeCost : 0) - (L.shipping || 0) - L.price * 0.07 + L.price * 0.07);
     var def = amt || (kind === "sniper_set" ? Math.max(Math.round(L.price * 1.05), Math.min(fair, Math.round(L.price * 1.3))) : kind === "best_offer" ? Math.round(L.price * 0.85) : L.price);
-    var T = { sniper_set: ["Set a snipe reminder", "Your max bid", "I set this max of", ". If it wins, I agree to buy."], best_offer: ["Send a Best Offer", "Your offer", "I want to offer", ". If accepted, I agree to buy."], buy: ["Buy It Now", "You pay (before tax)", "I want to buy this for", " plus tax."] }[kind];
+    var T = { sniper_set: ["Set a snipe reminder", "Your max bid", "I will enter my max of", " on eBay myself. CardHound never bids."], best_offer: ["Send a Best Offer", "Your offer", "I want to offer", ". If accepted, I agree to buy."], buy: ["Buy It Now", "You pay (before tax)", "I want to buy this for", " plus tax."] }[kind];
     var k = keep({ kind: kind, id: L.id });
     var total = kind === "buy" ? L.price + (L.shipping || 0) : null;
     bot('<div class="vconf" data-k="' + k + '"><div class="eyebrow" style="margin:0">Confirm · simulated</div><b class="vc-tt">' + T[0] + '</b><div class="small muted">' + esc(L.title) + ' · ' + (L.raw ? "Raw" : L.grade_company + " " + L.grade) + ' · ' + (L.listing_type === "auction" ? "current bid " + money(L.price, true) : "listed " + money(L.price, true)) + '</div>' +

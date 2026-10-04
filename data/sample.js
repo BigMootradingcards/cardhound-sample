@@ -1906,7 +1906,7 @@ window.CARDHOUND_SAMPLE = {
  * Columns match the BigmooTradingCards Card Flip Ledger: card / from / cost / status, plus seller, price, shipping, tax, date, order link.
  * "value" is an invented sample current value (CardHound's own licensed data will supply this later). */
 window.CARDHOUND_SAMPLE.ledger = [
-  { id: "L1", card: "2001 Topps Chrome Traded #T247 Albert Pujols RC", grade: "PSA 9", from: "eBay · Sniper win", seller: "sample-seller-a", price: 148.00, shipping: 4.99, tax: 10.71, date: "2026-07-08", order: "SAMPLE-ORDER-1001", status: "graded", value: 525, category: "Baseball" },
+  { id: "L1", card: "2001 Topps Chrome Traded #T247 Albert Pujols RC", grade: "PSA 9", from: "eBay · Auction", seller: "sample-seller-a", price: 148.00, shipping: 4.99, tax: 10.71, date: "2026-07-08", order: "SAMPLE-ORDER-1001", status: "graded", value: 525, category: "Baseball" },
   { id: "L2", card: "2023 Panini Prizm #136 Victor Wembanyama RC", grade: "Raw", from: "eBay · Buy It Now", seller: "sample-seller-b", price: 92.00, shipping: 5.00, tax: 6.79, date: "2026-09-02", order: "SAMPLE-ORDER-1002", status: "listed", value: 121, listPrice: 129, category: "Basketball" },
   { id: "L3", card: "2018 Panini Prizm #280 Luka Doncic RC", grade: "PSA 9", from: "eBay · Gem Hunt", seller: "sample-seller-c", price: 236.00, shipping: 0, tax: 16.52, date: "2026-09-21", order: "SAMPLE-ORDER-1003", status: "bought", value: 284, category: "Basketball" },
   { id: "L4", card: "1999 Pokémon Base Set Charizard Holo #4", grade: "PSA 6", from: "Card show", seller: "Sample booth 14", price: 410.00, shipping: 0, tax: 0, date: "2026-06-14", order: "", status: "sold", value: 0, soldFor: 548, soldVia: "Card show", soldDate: "2026-08-30", category: "Pokémon" },

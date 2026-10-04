@@ -371,38 +371,39 @@
     });
   }
   function disclaimer() {
-    return '<div class="note" style="margin-top:14px">' + I("shield") + '<div><b style="color:var(--text)">You set the max. CardHound never bids without your confirmation.</b> Today you place your max on eBay yourself and CardHound reminds you before the end. Automatic last-second bidding is <b style="color:var(--gold2)">coming soon, pending eBay approval</b> (Buy Offer API, limited release). Nothing is ever bid in this demo.</div></div>';
+    return '<div class="note" style="margin-top:14px">' + I("shield") + '<div><b style="color:var(--text)">CardHound never bids or buys.</b> You set your max, open the listing on eBay and place your bid there yourself. CardHound reminds you before the auction ends. It never sees the result: check eBay to see if you won.</div></div>';
   }
   function cd(s) { var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ":" : "") + (m < 10 ? "0" : "") + m + ":" + (x < 10 ? "0" : "") + x; }
-  var ST_LABEL = { Scheduled: "Reminder set", Placed: "Max set on eBay", Won: "Won", Outbid: "Outbid" };
+  var ST_LABEL = { Scheduled: "Reminder set", Ended: "Auction ended" };
+  /* CardHound never bids, so there is no "placed" or "won". Older saved demo snipes are mapped to the honest states. */
+  function normSnipe(s) { if (s.status === "Placed") { s.status = "Scheduled"; s.opened = true; } else if (s.status !== "Scheduled") s.status = "Ended"; return s; }
+  function remindText(s) { return "Reminder (demo): " + s.card + " ends soon. Your max: " + money(s.max, true) + ". Open it on eBay and bid yourself. CardHound never bids."; }
   function snipesList() {
     var head = gate("sniper");
     if (!state.snipes.length) return head + '<div class="card" style="text-align:center;padding:28px 18px;margin-top:12px"><div style="width:60px;height:60px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;color:var(--gold2);border:1px solid var(--gold-line)">' + I("target") + '</div><b>No auctions tracked yet</b><p class="muted small" style="margin:6px 0 14px">Tap <b>Snipe</b> on any auction in Deals, Watchlist, Gem Hunt or a report.</p><a class="btn btn-gold btn-sm" href="#/deals">Browse auctions</a></div>' + disclaimer();
     return head + '<div style="height:12px"></div>' + state.snipes.map(function (s) {
-      var st = s.status, live = st === "Scheduled" || st === "Placed", left = Math.max(0, Math.round((s.endsAt - Date.now()) / 1000));
-      return '<div class="deal"><div class="top"><b>' + esc(s.card) + '</b><span class="chip ' + (st === "Won" ? "ok" : st === "Outbid" ? "" : "gold") + '" style="height:22px;font-size:10.5px">' + ST_LABEL[st] + ' · demo</span></div>' +
-        '<div class="vs"><div><div class="small dim">Your max</div><div class="price num">' + money(s.max, true) + '</div></div><div style="text-align:right"><div class="small dim">' + (live ? "Auction ends in (demo)" : "Result (demo)") + '</div><div class="countdown num" data-cd="' + s.id + '">' + (live ? cd(left) : st) + '</div></div></div>' +
-        '<div class="acts acts-wrap">' + (live ? (st === "Scheduled" ? '<button class="btn btn-gold btn-xs" data-ebay="' + s.id + '">' + I("ext") + 'Set my max on eBay</button>' : "") + '<button class="btn btn-ghost btn-xs" data-edit="' + s.id + '">Edit</button><button class="btn btn-ghost btn-xs" data-cancel="' + s.id + '">Cancel</button><button class="btn btn-ghost btn-xs" data-sim="' + s.id + '">Skip ahead</button>' : '<button class="btn btn-ghost btn-xs" data-remove="' + s.id + '">Remove</button>') + '</div></div>';
-    }).join("") + '<div class="card tight row between" style="margin-top:12px"><span><b style="font-size:13.5px">Auto last-second bid</b><br><span class="small muted">Coming soon, pending eBay approval</span></span><span class="chip">Coming soon</span></div>' + disclaimer();
+      var st = normSnipe(s).status, live = st === "Scheduled", left = Math.max(0, Math.round((s.endsAt - Date.now()) / 1000));
+      return '<div class="deal"><div class="top"><b>' + esc(s.card) + '</b><span class="chip ' + (live ? "gold" : "") + '" style="height:22px;font-size:10.5px">' + ST_LABEL[st] + (live && s.opened ? " · eBay opened" : "") + ' · demo</span></div>' +
+        '<div class="vs"><div><div class="small dim">Your max</div><div class="price num">' + money(s.max, true) + '</div></div><div style="text-align:right"><div class="small dim">' + (live ? "Auction ends in (demo)" : "Result") + '</div><div class="countdown num" data-cd="' + s.id + '">' + (live ? cd(left) : "Check eBay") + '</div></div></div>' +
+        (live ? "" : '<p class="small muted" style="margin:6px 0 0">CardHound never bids, so only eBay knows if you won.</p>') +
+        '<div class="acts acts-wrap">' + (live ? '<button class="btn btn-gold btn-xs" data-ebay="' + s.id + '">' + I("ext") + 'Open on eBay</button><button class="btn btn-ghost btn-xs" data-edit="' + s.id + '">Edit max</button><button class="btn btn-ghost btn-xs" data-cancel="' + s.id + '">Cancel reminder</button><button class="btn btn-ghost btn-xs" data-sim="' + s.id + '">Preview reminder</button>' : '<button class="btn btn-ghost btn-xs" data-remove="' + s.id + '">Remove</button>') + '</div></div>';
+    }).join("") + disclaimer();
   }
   function findSnipe(id) { return state.snipes.filter(function (x) { return x.id === id; })[0]; }
   function ebayHandoff(s) {
-    if (s && s.status === "Scheduled") { s.status = "Placed"; saveSnipes(); }
+    if (s) { s.opened = true; saveSnipes(); }
     toast("Demo: sample listings have no eBay link. In the app this opens the listing on eBay, where you enter your own max.");
   }
   function bindSnipes() {
     state.timers.push(setInterval(function () {
       state.snipes.forEach(function (s) {
-        if (s.status !== "Scheduled" && s.status !== "Placed") return;
+        if (normSnipe(s).status !== "Scheduled") return;
         var left = Math.max(0, Math.round((s.endsAt - Date.now()) / 1000)), el = view.querySelector('[data-cd="' + s.id + '"]');
         if (el) el.textContent = cd(left);
+        if (left <= 120 && !s.reminded) { s.reminded = true; saveSnipes(); toast(remindText(s)); }
         if (left === 0) {
-          s.status = (s.status === "Placed" && s.max >= s.price * 1.1) ? "Won" : "Outbid"; saveSnipes();
-          if (s.status === "Won" && D.addLedgerRow) {
-            var paid = Math.round(Math.min(s.max, s.price * 1.1) * 100) / 100;
-            D.addLedgerRow({ card: s.card, from: "eBay · Sniper win", seller: "sample-seller (demo)", price: paid, shipping: 4.99, tax: Math.round(paid * 7) / 100, order: "SAMPLE-AUTO-" + String(s.id).slice(-4), status: "bought", auto: true, sample: true });
-            toast("Demo: auction ended (Won). Logged to your Ledger automatically.");
-          } else toast("Demo: auction ended (" + s.status + "). Simulated result.");
+          s.status = "Ended"; saveSnipes();
+          toast("Demo: auction ended. CardHound never bids, so check eBay for the result.");
           dealsScreen({ sub: "snipes" });
         }
       });
@@ -410,7 +411,7 @@
     view.querySelectorAll("[data-ebay]").forEach(function (b) { b.onclick = function () { ebayHandoff(findSnipe(b.dataset.ebay)); dealsScreen({ sub: "snipes" }); }; });
     view.querySelectorAll("[data-cancel]").forEach(function (b) { b.onclick = function () { state.snipes = state.snipes.filter(function (s) { return s.id !== b.dataset.cancel; }); saveSnipes(); toast("Reminder cancelled (demo)."); dealsScreen({ sub: "snipes" }); }; });
     view.querySelectorAll("[data-remove]").forEach(function (b) { b.onclick = function () { state.snipes = state.snipes.filter(function (s) { return s.id !== b.dataset.remove; }); saveSnipes(); dealsScreen({ sub: "snipes" }); }; });
-    view.querySelectorAll("[data-sim]").forEach(function (b) { b.onclick = function () { findSnipe(b.dataset.sim).endsAt = Date.now() + 4000; saveSnipes(); toast("Demo: skipping to the last seconds. No real bid."); }; });
+    view.querySelectorAll("[data-sim]").forEach(function (b) { b.onclick = function () { toast(remindText(findSnipe(b.dataset.sim))); }; });
     view.querySelectorAll("[data-edit]").forEach(function (b) { b.onclick = function () { var s = findSnipe(b.dataset.edit); snipeSheet(s.dealId, s); }; });
   }
 
@@ -447,11 +448,10 @@
         });
     }
     function step2(v) {
-      openSheet('<div class="eyebrow">Confirm · demo</div><h2>Confirm your exact max</h2><p class="muted small" style="margin:0">' + esc(d.card) + '</p>' +
+      openSheet('<div class="eyebrow">Reminder · demo</div><h2>Your max</h2><p class="muted small" style="margin:0">' + esc(d.card) + '</p>' +
         '<div class="card gold" style="margin-top:14px;text-align:center"><div class="small muted">Your max bid</div><div class="callword num" style="font-size:54px;margin:6px 0">' + money(v, true) + '</div><div class="small muted">You enter this on eBay yourself. CardHound reminds you before the end.</div></div>' +
-        '<label class="row" style="margin-top:14px;gap:12px;align-items:flex-start;font-size:13.5px"><input type="checkbox" id="ok" style="width:20px;height:20px;accent-color:#e3bd6a;margin-top:1px;flex:none"><span>I set this max of <b>' + money(v, true) + '</b>. If it wins, I agree to buy.</span></label>' +
-        '<div class="cta-stack"><button class="btn btn-gold" id="ebay" disabled>' + I("ext") + 'Set my max on eBay</button><button class="btn btn-ghost" id="remind" disabled>' + I("bell") + (existing ? "Update reminder (demo)" : "Remind me before it ends (demo)") + '</button></div>' +
-        '<div class="card tight row between" style="margin-top:10px;opacity:.75"><span><b style="font-size:13.5px">Auto last-second bid</b><br><span class="small muted">Coming soon, pending eBay approval</span></span><input type="checkbox" disabled style="width:22px;height:22px"></div>' +
+        '<label class="row" style="margin-top:14px;gap:12px;align-items:flex-start;font-size:13.5px"><input type="checkbox" id="ok" style="width:20px;height:20px;accent-color:#e3bd6a;margin-top:1px;flex:none"><span>I will enter my max of <b>' + money(v, true) + '</b> on eBay myself. CardHound never bids.</span></label>' +
+        '<div class="cta-stack"><button class="btn btn-gold" id="ebay" disabled>' + I("ext") + 'Open the listing on eBay</button><button class="btn btn-ghost" id="remind" disabled>' + I("bell") + (existing ? "Update reminder (demo)" : "Remind me before it ends (demo)") + '</button></div>' +
         '<button class="link-btn" id="back" style="margin-top:12px">' + I("left") + 'Change amount</button>' + disclaimer(), function () {
           var ok = document.getElementById("ok"), eb = document.getElementById("ebay"), rm = document.getElementById("remind");
           ok.onchange = function () { eb.disabled = rm.disabled = !ok.checked; };
@@ -460,7 +460,7 @@
             var s = existing;
             if (s) s.max = v;
             else { s = { id: "sn" + Date.now(), dealId: d.id, card: d.card, max: v, price: d.price, status: "Scheduled", endsAt: Date.now() + Math.min(d.endsMin, 45) * 60000 }; state.snipes.unshift(s); }
-            if (placed) ebayHandoff(s); else toast("Reminder set (demo). Nothing will be bid.");
+            if (placed) ebayHandoff(s); else toast("Reminder set (demo). CardHound never bids.");
             saveSnipes(); closeSheet();
             if (parseHash().route === "deals" && parseHash().sub === "snipes") dealsScreen({ sub: "snipes" }); else location.hash = "#/deals/snipes";
           };
@@ -584,7 +584,7 @@
     var body = "";
     if (s.method === "apikey") body = '<div class="field"><label for="key">' + esc(s.keyLabel) + '</label><input class="input" id="key" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste your token"></div>' +
       '<p class="small muted" style="margin:8px 0 0">' + esc(s.keyHelp) + '</p><div class="note" style="margin-top:12px">' + I("key") + '<div>Demo: the token is stored only on this device (localStorage) and never sent anywhere. It\'s an API token, never your password.</div></div>';
-    else if (s.method === "oauth") body = '<ol class="vsteps"><li><span class="sn">1</span><div><b>Continue to the official eBay sign-in</b><span>You sign in on eBay\'s own page. CardHound never sees your password.</span></div></li><li><span class="sn">2</span><div><b>Approve access</b><span>Watchlist, saved searches and listings. Automatic bidding is pending eBay approval.</span></div></li></ol>';
+    else if (s.method === "oauth") body = '<ol class="vsteps"><li><span class="sn">1</span><div><b>Continue to the official eBay sign-in</b><span>You sign in on eBay\'s own page. CardHound never sees your password.</span></div></li><li><span class="sn">2</span><div><b>Approve access</b><span>Watchlist, saved searches and listings. Look only: CardHound never bids or buys.</span></div></li></ol>';
     openSheet(top + '<h2>Connect your ' + esc(s.name) + '</h2><p class="muted small" style="margin:0">' + esc(s.blurb) + '</p>' + body + safe + unl +
       '<div class="cta-stack"><button class="btn btn-gold" id="sim">' + I(s.method === "apikey" ? "key" : "plug") + (s.method === "apikey" ? "Save token (demo)" : "Continue with eBay (simulated)") + '</button></div>' +
       '<p class="small dim" style="text-align:center;margin-top:12px">Demo: connections are simulated. Prices stay sample data.</p>', function () {

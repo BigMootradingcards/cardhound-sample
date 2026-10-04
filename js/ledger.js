@@ -5,7 +5,7 @@ window.CH_LEDGER = function (U) {
   "use strict";
   var view = U.view, D = U.D, I = U.I, esc = U.esc, money = U.money;
   var ST = ["bought", "graded", "listed", "sold"], STL = { bought: "Bought", graded: "Graded", listed: "Listed", sold: "Sold" };
-  var FROM = ["eBay · Buy It Now", "eBay · Auction", "eBay · Best Offer", "eBay · Sniper win", "eBay · Gem Hunt", "Whatnot", "Card show", "Local shop", "Facebook Marketplace", "COMC", "Other"];
+  var FROM = ["eBay · Buy It Now", "eBay · Auction", "eBay · Best Offer", "eBay · Gem Hunt", "Whatnot", "Card show", "Local shop", "Facebook Marketplace", "COMC", "Other"];
   var ui = { filter: "all", open: null, sub: "ledger" };
   var m2 = function (v) { return money(v, true); };
   var num = function (v) { var n = parseFloat(String(v == null ? "" : v).replace(/[^0-9.\-]/g, "")); return isNaN(n) ? 0 : n; };
@@ -36,7 +36,7 @@ window.CH_LEDGER = function (U) {
     return '<div class="card gold ebay-hero"><div class="row" style="gap:12px;align-items:flex-start"><span class="srcmono">eB</span><div class="t"><b>Connect eBay to auto-track buys</b><span>Official eBay sign-in. CardHound never sees your eBay password. Each purchase lands here with seller, price, shipping, tax and the order link.</span></div></div>' +
       '<button class="btn btn-gold btn-sm" data-connect="ebay" style="width:100%;margin-top:12px">' + I("plug") + 'Connect eBay</button></div>';
   }
-  function autoNote() { return '<div class="note" style="margin-top:10px">' + I("spark") + '<div><b style="color:var(--text)">Logs automatically:</b> Sniper wins, Buy and Gem Hunt purchases. Add anything else below.</div></div>'; }
+  function autoNote() { return '<div class="note" style="margin-top:10px">' + I("spark") + '<div><b style="color:var(--text)">Imports from eBay once connected:</b> your purchases, including auctions you won bidding yourself. Add anything else below.</div></div>'; }
   function ledgerHTML(rows) {
     var cnt = { all: rows.length }; ST.forEach(function (s) { cnt[s] = rows.filter(function (r) { return r.status === s; }).length; });
     var spent = rows.reduce(function (s, r) { return s + r.cost; }, 0), soldSum = rows.filter(function (r) { return r.status === "sold"; }).reduce(function (s, r) { return s + (+r.soldFor || 0); }, 0);
